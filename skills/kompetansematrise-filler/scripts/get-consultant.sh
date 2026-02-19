@@ -9,8 +9,8 @@
 set -euo pipefail
 
 # ─── Configuration ────────────────────────────────────────────────────────────
-FLOWCASE_API_KEY="${FLOWCASE_API_KEY:-YOUR_API_KEY_HERE}"
-FLOWCASE_ORG="${FLOWCASE_ORG:-YOUR_ORG_SUBDOMAIN}"
+FLOWCASE_API_KEY="${FLOWCASE_API_KEY}"
+FLOWCASE_ORG="${FLOWCASE_ORG}"
 # ──────────────────────────────────────────────────────────────────────────────
 
 BASE_URL="https://${FLOWCASE_ORG}.flowcase.com/api"
@@ -26,13 +26,26 @@ CONSULTANT_NAME="$1"
 # Step 1: Search for user by name using v4 search API
 echo "Searching for consultant: ${CONSULTANT_NAME}..." >&2
 
-SEARCH_RESPONSE=$(curl -s -X POST "${BASE_URL}/v4/search" \
+PAYLOAD=$(jq -n --arg name "$CONSULTANT_NAME" '{
+  must: [{bool: {should: [{query: {field: "name", value: $name}}]}}],
+  size: 5
+}')
+
+TMPFILE=$(mktemp)
+trap 'rm -f "$TMPFILE"' EXIT
+
+HTTP_STATUS=$(curl -s --connect-timeout 10 --max-time 30 -o "$TMPFILE" -w "%{http_code}" -X POST "${BASE_URL}/v4/search" \
   -H "Authorization: ${AUTH_HEADER}" \
   -H "Content-Type: application/json" \
-  -d "{
-    \"must\": [{\"bool\": {\"should\": [{\"query\": {\"field\": \"name\", \"value\": \"${CONSULTANT_NAME}\"}}]}}],
-    \"size\": 5
-  }")
+  -d "$PAYLOAD")
+
+if [ "$HTTP_STATUS" -ne 200 ]; then
+  echo "API error searching for consultant (HTTP ${HTTP_STATUS}):" >&2
+  cat "$TMPFILE" >&2
+  exit 1
+fi
+
+SEARCH_RESPONSE=$(cat "$TMPFILE")
 
 # Extract number of results
 NUM_RESULTS=$(echo "$SEARCH_RESPONSE" | jq '.cvs | length')
@@ -45,14 +58,14 @@ fi
 # If multiple matches, list them and pick the first (or exact match)
 if [ "$NUM_RESULTS" -gt 1 ]; then
   echo "Found ${NUM_RESULTS} matches:" >&2
-  echo "$SEARCH_RESPONSE" | jq -r '.cvs[] | "  - \(.name) (\(.email // "no email"))"' >&2
+  echo "$SEARCH_RESPONSE" | jq -r '.cvs[].cv | "  - \(.name) (\(.email // "no email"))"' >&2
   echo "Using first match." >&2
 fi
 
 # Extract user_id and cv_id from the first result
-USER_ID=$(echo "$SEARCH_RESPONSE" | jq -r '.cvs[0].user_id')
-CV_ID=$(echo "$SEARCH_RESPONSE" | jq -r '.cvs[0].default_cv_id')
-USER_NAME=$(echo "$SEARCH_RESPONSE" | jq -r '.cvs[0].name')
+USER_ID=$(echo "$SEARCH_RESPONSE" | jq -r '.cvs[0].cv.user_id')
+CV_ID=$(echo "$SEARCH_RESPONSE" | jq -r '.cvs[0].cv.id')
+USER_NAME=$(echo "$SEARCH_RESPONSE" | jq -r '.cvs[0].cv.name')
 
 if [ -z "$USER_ID" ] || [ "$USER_ID" = "null" ]; then
   echo "Could not extract user ID from search results." >&2
@@ -62,9 +75,15 @@ fi
 echo "Found: ${USER_NAME} (user_id: ${USER_ID}, cv_id: ${CV_ID})" >&2
 
 # Step 2: Fetch full CV data using v3 API
-CV_RESPONSE=$(curl -s -X GET "${BASE_URL}/v3/cvs/${USER_ID}/${CV_ID}" \
+HTTP_STATUS=$(curl -s --connect-timeout 10 --max-time 30 -o "$TMPFILE" -w "%{http_code}" -X GET "${BASE_URL}/v3/cvs/${USER_ID}/${CV_ID}" \
   -H "Authorization: ${AUTH_HEADER}" \
   -H "Content-Type: application/json")
 
+if [ "$HTTP_STATUS" -ne 200 ]; then
+  echo "API error fetching CV (HTTP ${HTTP_STATUS}):" >&2
+  cat "$TMPFILE" >&2
+  exit 1
+fi
+
 # Step 3: Output the full CV JSON to stdout
-echo "$CV_RESPONSE"
+cat "$TMPFILE"

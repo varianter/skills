@@ -12,8 +12,8 @@
 set -euo pipefail
 
 # ─── Configuration ────────────────────────────────────────────────────────────
-FLOWCASE_API_KEY="${FLOWCASE_API_KEY:-YOUR_API_KEY_HERE}"
-FLOWCASE_ORG="${FLOWCASE_ORG:-YOUR_ORG_SUBDOMAIN}"
+FLOWCASE_API_KEY="${FLOWCASE_API_KEY}"
+FLOWCASE_ORG="${FLOWCASE_ORG}"
 RESULTS_PER_SKILL="${FLOWCASE_RESULTS_PER_SKILL:-20}"
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -34,38 +34,54 @@ echo "Searching for consultants matching ${#SKILLS[@]} skills: ${SKILLS[*]}" >&2
 # Step 1: Search for each skill and collect candidate hits
 ALL_HITS="${TMPDIR}/all_hits.jsonl"
 > "$ALL_HITS"
+API_TMPFILE="${TMPDIR}/api_response.json"
 
 for SKILL in "${SKILLS[@]}"; do
   echo "  Searching skill: ${SKILL}..." >&2
 
   # Try technology_skill search first (exact tag match)
-  RESPONSE=$(curl -s -X POST "${BASE_URL}/v4/search" \
+  PAYLOAD=$(jq -n --arg tag "$SKILL" --argjson size "$RESULTS_PER_SKILL" '{
+    must: [{technology_skill: {tag: $tag}}],
+    size: $size
+  }')
+
+  HTTP_STATUS=$(curl -s --connect-timeout 10 --max-time 30 -o "$API_TMPFILE" -w "%{http_code}" -X POST "${BASE_URL}/v4/search" \
     -H "Authorization: ${AUTH_HEADER}" \
     -H "Content-Type: application/json" \
-    -d "{
-      \"must\": [{\"technology_skill\": {\"tag\": \"${SKILL}\"}}],
-      \"size\": ${RESULTS_PER_SKILL}
-    }")
+    -d "$PAYLOAD")
 
-  NUM=$(echo "$RESPONSE" | jq '.cvs | length')
+  if [ "$HTTP_STATUS" -ne 200 ]; then
+    echo "    API error for skill '${SKILL}' (HTTP ${HTTP_STATUS}), skipping." >&2
+    continue
+  fi
+
+  NUM=$(jq '.cvs | length' "$API_TMPFILE")
 
   # Fall back to free-text search if no technology_skill matches
   if [ "$NUM" -eq 0 ]; then
-    RESPONSE=$(curl -s -X POST "${BASE_URL}/v4/search" \
+    PAYLOAD=$(jq -n --arg val "$SKILL" --argjson size "$RESULTS_PER_SKILL" '{
+      must: [{query: {value: $val}}],
+      size: $size
+    }')
+
+    HTTP_STATUS=$(curl -s --connect-timeout 10 --max-time 30 -o "$API_TMPFILE" -w "%{http_code}" -X POST "${BASE_URL}/v4/search" \
       -H "Authorization: ${AUTH_HEADER}" \
       -H "Content-Type: application/json" \
-      -d "{
-        \"must\": [{\"query\": {\"value\": \"${SKILL}\"}}],
-        \"size\": ${RESULTS_PER_SKILL}
-      }")
-    NUM=$(echo "$RESPONSE" | jq '.cvs | length')
+      -d "$PAYLOAD")
+
+    if [ "$HTTP_STATUS" -ne 200 ]; then
+      echo "    API error for skill '${SKILL}' fallback (HTTP ${HTTP_STATUS}), skipping." >&2
+      continue
+    fi
+
+    NUM=$(jq '.cvs | length' "$API_TMPFILE")
   fi
 
   echo "    Found ${NUM} consultants for '${SKILL}'" >&2
 
   # Append each hit with the skill that matched
-  echo "$RESPONSE" | jq -c --arg skill "$SKILL" \
-    '.cvs[]? | {user_id, default_cv_id, name, email, title, skill: $skill}' >> "$ALL_HITS"
+  jq -c --arg skill "$SKILL" \
+    '.cvs[]?.cv | {user_id, cv_id: .id, name, email, title: (.titles.no // .title), skill: $skill}' "$API_TMPFILE" >> "$ALL_HITS"
 done
 
 # Step 2: Rank consultants by number of distinct skill matches
@@ -76,7 +92,7 @@ RANKED=$(jq -s '
   group_by(.user_id)
   | map({
       user_id: .[0].user_id,
-      cv_id: .[0].default_cv_id,
+      cv_id: .[0].cv_id,
       name: .[0].name,
       email: .[0].email,
       title: .[0].title,

@@ -1,5 +1,7 @@
 # Kompetansematrise Examples
 
+> These examples use a 0–10 scale. When the matrix uses a different scale, apply the same evidence thresholds proportionally (see SKILL.md scoring section).
+
 ## Contents
 - [Score examples by level](#score-examples-by-level)
 - [English matrix example](#english-matrix-example)
