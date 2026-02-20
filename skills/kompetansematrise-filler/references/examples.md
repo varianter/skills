@@ -13,54 +13,54 @@ Use these as tone and structure calibration. Note how descriptions vary in lengt
 
 ### Score 10 — Expert
 
-**Row:** React | **CV:** 12 yrs, tech lead FRAM/Ny Billettering, AtB/Mobility as Platform, solution architect Lånekassen, speaker, OSS
+**Row:** React | **CV:** 12 yrs, tech lead NordTrans/Reiseportalen, ByTransport/Reiseplattform, solution architect Studiefond, speaker, OSS
 
 → Score: 10
-→ *Mikael har 12 års erfaring med React og vært tech lead på mange prosjekter, blant andre for FRAM i Ny Billettering, hos AtB i Mobility as Platform og som løsningsarkitekt hos Lånekassen for nye lånekassen.no. Han er anerkjent foredragsholder innenfor React og aktiv bidragsyter i Open Source-miljøet.*
+→ *Erika har 12 års erfaring med React og vært tech lead på mange prosjekter, blant andre for NordTrans i Reiseportalen, hos ByTransport i Reiseplattform og som løsningsarkitekt hos Studiefond for nye studiefond.no. Hun er anerkjent foredragsholder innenfor React og aktiv bidragsyter i Open Source-miljøet.*
 
 ### Score 8 — Several years
 
-**Row:** Kubernetes/Docker | **CV:** 5 yrs K8s across 3 projects, CI/CD at Entur, container orchestration at AtB, Docker since 2018
+**Row:** Kubernetes/Docker | **CV:** 5 yrs K8s across 3 projects, CI/CD at ReiseInfo, container orchestration at ByTransport, Docker since 2018
 
 → Score: 8
-→ *Mikael har jobbet med Kubernetes og Docker i over 5 år på tvers av flere prosjekter. Hos Entur satte han opp CI/CD-pipelines med Kubernetes, og hos AtB hadde han ansvar for containerorkestrering i produksjonsmiljøet. Docker har vært en del av verktøykassen hans i alle prosjekter siden 2018.*
+→ *Erika har jobbet med Kubernetes og Docker i over 5 år på tvers av flere prosjekter. Hos ReiseInfo satte hun opp CI/CD-pipelines med Kubernetes, og hos ByTransport hadde hun ansvar for containerorkestrering i produksjonsmiljøet. Docker har vært en del av verktøykassen hennes i alle prosjekter siden 2018.*
 
 ### Score 5 — Some use
 
-**Row:** Elasticsearch | **CV:** ELK stack for logging, 6 months at AtB
+**Row:** Elasticsearch | **CV:** ELK stack for logging, 6 months at ByTransport
 
 → Score: 5
-→ *Mikael har brukt Elasticsearch i forbindelse med logging og søk hos AtB i Mobility as Platform-prosjektet, der han satte opp og konfigurerte ELK-stacken for applikasjonsovervåkning.*
+→ *Erika har brukt Elasticsearch i forbindelse med logging og søk hos ByTransport i Reiseplattform-prosjektet, der hun satte opp og konfigurerte ELK-stacken for applikasjonsovervåkning.*
 
 ### Score 5 — Adjacent technology
 
 **Row:** MSSQL | **CV:** 8 yrs PostgreSQL, strong SQL, no MSSQL
 
 → Score: 5
-→ *Mikael har ikke jobbet direkte med MSSQL, men har 8 års erfaring med PostgreSQL på tvers av flere prosjekter, inkludert databasedesign og ytelsesoptimalisering. SQL-kompetansen er i stor grad overførbar mellom disse databaseplattformene.*
+→ *Erika har ikke jobbet direkte med MSSQL, men har 8 års erfaring med PostgreSQL på tvers av flere prosjekter, inkludert databasedesign og ytelsesoptimalisering. SQL-kompetansen er i stor grad overførbar mellom disse databaseplattformene.*
 
 ### Score 2 — Awareness only
 
 **Row:** SAP Integration | **CV:** Worked alongside SAP team, no direct SAP work
 
 → Score: 2
-→ *Mikael har jobbet i prosjekter der SAP var en del av systemlandskapet, men har ikke selv jobbet direkte med SAP-integrasjoner.*
+→ *Erika har jobbet i prosjekter der SAP var en del av systemlandskapet, men har ikke selv jobbet direkte med SAP-integrasjoner.*
 
 ### Score 0 — None
 
 **Row:** Mainframe/COBOL | **CV:** No mention
 
 → Score: 0
-→ *Mikael har ikke erfaring med Mainframe eller COBOL.*
+→ *Erika har ikke erfaring med Mainframe eller COBOL.*
 
 ## English matrix example
 
 When the matrix is in English, write descriptions in English:
 
-**Row:** Agile methodology | **CV:** Scrum Master certified, led agile transformation at Lånekassen, 10 yrs cross-functional teams
+**Row:** Agile methodology | **CV:** Scrum Master certified, led agile transformation at Studiefond, 10 yrs cross-functional teams
 
 → Score: 10
-→ *Mikael is a certified Scrum Master with over 10 years of experience in cross-functional agile teams. He led an agile transformation initiative at Lånekassen and has consistently applied Scrum and Kanban across projects at FRAM, AtB, and Entur, including coaching teams on best practices.*
+→ *Erika is a certified Scrum Master with over 10 years of experience in cross-functional agile teams. She led an agile transformation initiative at Studiefond and has consistently applied Scrum and Kanban across projects at NordTrans, ByTransport, and ReiseInfo, including coaching teams on best practices.*
 
 ## Technology adjacency table
 
