@@ -13,11 +13,13 @@ Each skill lives in its own directory under `skills/` and must contain a `SKILL.
 
 ## Creating a skill
 
-Scaffold a new skill:
+Use the **skill-creator** plugin (installed in this repo). Ask Claude to create a new skill — the plugin will guide the process. Ensure the plugin is installed:
 
-```bash
-python ~/.claude/plugins/.../skill-creator/scripts/init_skill.py <skill-name> --path skills/
 ```
+/plugin install skill-creator
+```
+
+After creating a skill, use the tools below to validate and package it.
 
 Then edit `skills/<skill-name>/SKILL.md`. Conventions:
 
