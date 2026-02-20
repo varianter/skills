@@ -44,7 +44,6 @@ export function validateSkill(skillPath: string): Result {
 
   let frontmatter: unknown;
   try {
-    console.log(frontmatterText);
     frontmatter = YAML.parse(frontmatterText);
   } catch (e) {
     return {
