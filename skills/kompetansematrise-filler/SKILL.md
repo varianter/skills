@@ -10,7 +10,7 @@ description: >
   similar, (3) User asks to score, evaluate, or match a consultant against a list of
   technologies, methods, or competencies for a tender (anbud/tilbud/anskaffelse), (4)
   User wants to find the best-matching consultant for a set of required competencies.
-compatibility: Requires curl and jq for FlowCase API scripts. FLOWCASE_API_KEY and FLOWCASE_ORG environment variables must be set.
+compatibility: Requires the Variant Internal MCP server
 ---
 
 # Kompetansematrise Filler
@@ -29,15 +29,15 @@ Confirm the extracted competency list with the user.
 
 Check the matrix for weighting (percentage columns, priority markers, groupings). Present any detected weights.
 
-Ask: *"Er noen av kompetansene viktigere enn andre? Jeg ser [detected weights if any]. Bekreft eller juster."*
+Ask: _"Er noen av kompetansene viktigere enn andre? Jeg ser [detected weights if any]. Bekreft eller juster."_
 
 ### 3. Select consultant(s)
 
-Ask: *"Har du en spesifikk konsulent i tankene, eller skal jeg finne den best egnede?"*
+Ask: _"Har du en spesifikk konsulent i tankene, eller skal jeg finne den best egnede?"_
 
-**Named consultant:** Get name → `./scripts/get-consultant.sh "<name>"`
+**Named consultant:** Get name → Use the `Variant Internal:get-cv-for-consultant` tool. If the tool is unavailable, ask the user to connect the Variant Internal MCP server.
 
-**Find best match:** Extract key skills (prioritize weighted ones) → `./scripts/search-consultant.sh "<skill1>" "<skill2>" ...` → present candidates → user selects → `./scripts/get-consultant.sh "<name>"` for each.
+**Find best match:** Extract key skills (prioritize weighted ones) → Use the `Variant Internal:search-cv-by-keyword` tool → present candidates → user selects → `Variant Internal:get-cv-for-consultant` MCP tool for each.
 
 **Multiple consultants:** When filling for more than one consultant, produce a separate complete matrix per consultant. Run steps 4–5 for each.
 
@@ -46,16 +46,6 @@ Ask: *"Har du en spesifikk konsulent i tankene, eller skal jeg finne den best eg
 For each consultant and **every row**, produce a score and description.
 
 Load [references/examples.md](references/examples.md) for tone, structure, and scoring calibration across all levels (0–10).
-
-#### Understanding the CV data
-
-The scripts return FlowCase CV JSON. Key sections to mine for evidence:
-
-- `project_experiences[]` — each has `customer.no` (client name), `description.no`, `year_from`, `year_to`, `roles[].name.no`, and `project_experience_skills[].tags.no` (technologies used)
-- `technologies[]` — grouped by `category.no` (e.g. "Frontend", "Backend"), each containing `technology_skills[].tags.no` (skill names)
-- `key_qualifications[]`, `educations[]`, `courses[]`, `certifications[]`
-
-Note: text fields are multilingual objects (e.g. `customer.no` for Norwegian, `customer.int` for English).
 
 #### Scoring
 
@@ -88,6 +78,6 @@ Present the complete matrix — every row, every consultant. Iterate on feedback
 
 ### 6. Export
 
-Ask: *"Skal jeg eksportere i Excel- eller Word-format?"*
+Ask: _"Skal jeg eksportere i Excel- eller Word-format?"_
 
 Use Python with `openpyxl` for Excel (.xlsx) or `python-docx` for Word (.docx). Match the original matrix structure — same columns, same row order, scores and descriptions filled in. If the original was an Excel file, prefer writing back into it to preserve formatting.

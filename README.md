@@ -2,6 +2,8 @@
 
 Collection of skills for Variant Team in Claude. Skills are developed and maintained here, then packaged for distribution to the team via Claude.ai Team.
 
+See also MCP tools that is handy for data access: https://github.com/varianter/mcp-internal
+
 ## Structure
 
 ```
