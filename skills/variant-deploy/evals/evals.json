@@ -1,0 +1,133 @@
+{
+  "skill_name": "variant-deploy",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just built a simple dashboard in HTML that shows our team's weekly goals. Here's the code: <html><body><h1>Team Goals Q1</h1><ul><li>Increase NPS to 70</li><li>Hit 95% utilization</li></ul></body></html>. Can you deploy this so the whole company can see it?",
+      "expected_output": "Asks for app name, clarifies public vs internal (or reads 'whole company' as internal), deploys to the correct repo. Should NOT deploy to external-artifacts without confirming it's safe to be fully public.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "asks-public-or-internal",
+          "description": "Asks the user whether they want public (share.variant.dev) or internal (artifacts.variant.dev) deployment — does not assume"
+        },
+        {
+          "name": "asks-app-name",
+          "description": "Asks for an app name / URL slug before deploying"
+        },
+        {
+          "name": "mentions-correct-urls",
+          "description": "Mentions either share.variant.dev or artifacts.variant.dev (or both) when explaining the options"
+        },
+        {
+          "name": "static-files-limitation-mentioned-if-relevant",
+          "description": "If the skill mentions limitations, they are accurate (only mentions static file limitation if truly relevant)"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Lanser dette verktøyet jeg har laget som bruker HubSpot data. Det henter leads fra HubSpot API og viser dem i en tabell.\n\nconst API_KEY = 'hapi_abc123secretkey456';\nfetch(`https://api.hubapi.com/crm/v3/objects/leads?hapikey=${API_KEY}`)",
+      "expected_output": "Should detect the hardcoded HubSpot API key, refuse to deploy publicly, warn clearly that this is sensitive, and strongly recommend deploying to vibe-artifacts (internal) instead.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "detects-api-key",
+          "description": "Identifies 'hapi_abc123secretkey456' (or the API_KEY pattern) as a secret/credential that should not be in a public deployment"
+        },
+        {
+          "name": "refuses-public-deployment",
+          "description": "Does NOT proceed with deploying to varianter/external-artifacts / share.variant.dev"
+        },
+        {
+          "name": "clear-warning-given",
+          "description": "Gives a clear, explicit warning that this is a public repo and secrets would be visible to anyone on the internet"
+        },
+        {
+          "name": "recommends-internal-repo",
+          "description": "Recommends or suggests deploying to vibe-artifacts / artifacts.variant.dev instead"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Legg ut denne siden på Variant som offentlig tilgjengelig. Det er en enkel HTML-side med en animert poster for Variants sommerfest.\n\n<!DOCTYPE html><html><head><title>Sommerfest 2025</title><style>body{background:#FF5733;color:white;font-family:sans-serif;text-align:center;padding:50px;}h1{font-size:4em;animation:pulse 2s infinite;}@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}</style></head><body><h1>Sommerfest 2025!</h1><p>Dato: 21. juni</p></body></html>",
+      "expected_output": "Understands Norwegian request for public deployment. No secrets in the code. Deploys to varianter/external-artifacts. Asks for app name. Confirms URL at share.variant.dev.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "understands-norwegian-public-request",
+          "description": "Correctly interprets 'offentlig tilgjengelig' as a public deployment (not internal)"
+        },
+        {
+          "name": "targets-external-artifacts",
+          "description": "Deploys or plans to deploy to varianter/external-artifacts (not vibe-artifacts)"
+        },
+        {
+          "name": "asks-app-name",
+          "description": "Asks for an app name / URL slug"
+        },
+        {
+          "name": "provides-share-variant-url",
+          "description": "Confirms the final URL will be at share.variant.dev/<app-name>/"
+        },
+        {
+          "name": "no-false-secret-alarm",
+          "description": "Does NOT flag any false positives — the HTML contains no actual secrets"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I made a React app for tracking sales leads. It uses React hooks and has multiple components. Can you deploy it to Variant internally? Here's the main App component:\n\nimport { useState } from 'react'\nexport default function App() {\n  const [leads, setLeads] = useState([])\n  return <div><h1>Sales Leads</h1><ul>{leads.map(l => <li key={l.id}>{l.name}</li>)}</ul></div>\n}",
+      "expected_output": "Recognizes React app, offers to scaffold as a Vite project, includes correct base path in vite.config.js, deploys to vibe-artifacts.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "recognizes-react-framework",
+          "description": "Identifies this as a React app that needs a build/bundle step, not plain static HTML"
+        },
+        {
+          "name": "offers-vite-scaffold",
+          "description": "Offers to scaffold the project as a Vite project (mentions Vite, package.json, vite.config)"
+        },
+        {
+          "name": "vite-config-includes-base-path",
+          "description": "The generated vite.config.js includes a 'base' property set to the app's URL path (e.g., base: '/app-name/')"
+        },
+        {
+          "name": "targets-vibe-artifacts",
+          "description": "Deploys or plans to deploy to varianter/vibe-artifacts (user said 'internally')"
+        },
+        {
+          "name": "shows-full-file-structure",
+          "description": "Shows the files that will be created (package.json, vite.config.js, index.html, src/)"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Deploy my project to share.variant.dev. The app name should be 'team-dashboard'. It's a simple static site.",
+      "expected_output": "Checks if 'team-dashboard' already exists in varianter/external-artifacts. Finds it exists. Asks explicitly for confirmation before overwriting. Does not proceed silently.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "checks-for-existing-app",
+          "description": "Checks (or mentions checking) whether 'team-dashboard' already exists in the target repo before deploying"
+        },
+        {
+          "name": "asks-confirmation-before-overwrite",
+          "description": "Explicitly asks the user to confirm before overwriting the existing app — does not proceed automatically"
+        },
+        {
+          "name": "mentions-existing-url",
+          "description": "Mentions the existing live URL (share.variant.dev/team-dashboard/) when asking for confirmation"
+        },
+        {
+          "name": "targets-external-artifacts",
+          "description": "Correctly targets varianter/external-artifacts (user said share.variant.dev)"
+        }
+      ]
+    }
+  ]
+}
