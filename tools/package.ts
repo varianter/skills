@@ -25,9 +25,13 @@ import { validateSkill } from "./validate";
 // Script file extensions to scan for configuration sections
 const SCRIPT_EXTENSIONS = new Set([".sh", ".bash", ".zsh", ""]);
 
+// Files excluded from packaging (documentation-only files for Git/GitHub)
+const EXCLUDE_FILES = new Set(["README.md"]);
+
 function collectFiles(dir: string): string[] {
   const files: string[] = [];
   for (const entry of readdirSync(dir)) {
+    if (EXCLUDE_FILES.has(entry)) continue;
     const full = join(dir, entry);
     if (statSync(full).isDirectory()) {
       files.push(...collectFiles(full));
