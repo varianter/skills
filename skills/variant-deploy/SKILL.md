@@ -66,13 +66,23 @@ Before deploying to `varianter/external-artifacts`, scan all files for anything 
 
 Do not proceed with public deployment if secrets are present. Not even if the user asks you to.
 
-### Step 4: Choose an app name
+### Step 4: Choose a slug
 
-Ask for an app name if not already provided. The name becomes the URL path:
+**Always ask the user for a slug** — even if the conversation already contains a project name or file name. Never infer or silently reuse a name from context.
 
-- Use kebab-case (e.g., `budget-tracker`, `team-dashboard`, `q4-rapport`)
+> _"What slug should I use for the URL? This becomes the path: `share.variant.dev/<slug>/`"_
+
+Rules for the slug:
+- Lowercase only
+- Words separated by hyphens (kebab-case): `budget-tracker`, `team-dashboard`, `q4-rapport`
+- No spaces, dots, underscores, slashes, or other special characters
 - Short and descriptive
-- No spaces or special characters
+
+**If the user gives a name that isn't URL-safe**, convert it automatically and confirm before proceeding:
+
+> _"I'll use `team-dashboard` as the slug (converted from "Team Dashboard"). Does that work?"_
+
+Conversion rules: lowercase everything, replace spaces and underscores with `-`, strip any character that isn't `a-z`, `0-9`, or `-`, collapse consecutive hyphens, trim leading/trailing hyphens.
 
 ### Step 5: Check if the app already exists
 
@@ -178,12 +188,12 @@ The tool creates a single atomic commit and returns the live URL and commit link
 
 Once deployed, use the live URL and commit link returned by `github-deploy-app` to tell the user:
 
-> ✅ Deployed! Your app is live at: `<live URL>`
+> ✅ Deployed! Your app will be live at: `<live URL>`
 > Commit: `<commit URL>`
 >
-> It may take a moment for the build to complete and changes to propagate.
+> It typically takes **3–5 minutes** before the URL is ready — the platform needs to build and propagate the files.
 
-For Vite projects, add: _"The platform will build it automatically — it'll be ready in a minute or two."_
+For Vite projects, add: _"The platform will build it automatically as part of that process."_
 For internal deployments, add: _"Access requires Variant employee login."_
 
 ---
