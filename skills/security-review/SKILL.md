@@ -1,6 +1,6 @@
 ---
 name: security-review
-description: Security code review for vulnerabilities. Use when asked to "security review", "find vulnerabilities", "check for security issues", "audit security", "OWASP review", or review code for injection, XSS, authentication, authorization, cryptography issues. Provides systematic review with confidence-based reporting.
+description: Security code review for vulnerabilities. Use when asked about security or do "security review", "find vulnerabilities", "check for security issues", "audit security", "OWASP review", or review code for injection, XSS, authentication, authorization, cryptography issues. Provides systematic review with confidence-based reporting.
 allowed-tools: Read, Grep, Glob, Bash, Task
 license: LICENSE
 ---
@@ -22,6 +22,7 @@ Identify exploitable security vulnerabilities in code. Report only **HIGH CONFID
 - **Research**: The ENTIRE codebase to build confidence before reporting
 
 Before flagging any issue, you MUST research the codebase to understand:
+
 - Where does this input actually come from? (Trace data flow)
 - Is there validation/sanitization elsewhere?
 - How is this configured? (Check settings, config files, middleware)
@@ -31,15 +32,16 @@ Before flagging any issue, you MUST research the codebase to understand:
 
 ## Confidence Levels
 
-| Level | Criteria | Action |
-|-------|----------|--------|
-| **HIGH** | Vulnerable pattern + attacker-controlled input confirmed | **Report** with severity |
-| **MEDIUM** | Vulnerable pattern, input source unclear | **Note** as "Needs verification" |
-| **LOW** | Theoretical, best practice, defense-in-depth | **Do not report** |
+| Level      | Criteria                                                 | Action                           |
+| ---------- | -------------------------------------------------------- | -------------------------------- |
+| **HIGH**   | Vulnerable pattern + attacker-controlled input confirmed | **Report** with severity         |
+| **MEDIUM** | Vulnerable pattern, input source unclear                 | **Note** as "Needs verification" |
+| **LOW**    | Theoretical, best practice, defense-in-depth             | **Do not report**                |
 
 ## Do Not Flag
 
 ### General Rules
+
 - Test files (unless explicitly reviewing test security)
 - Dead code, commented code, documentation strings
 - Patterns using **constants** or **server-controlled configuration**
@@ -49,39 +51,43 @@ Before flagging any issue, you MUST research the codebase to understand:
 
 These are configured by operators, not controlled by attackers:
 
-| Source | Example | Why It's Safe |
-|--------|---------|---------------|
-| Django settings | `settings.API_URL`, `settings.ALLOWED_HOSTS` | Set via config/env at deployment |
-| Environment variables | `os.environ.get('DATABASE_URL')` | Deployment configuration |
-| Config files | `config.yaml`, `app.config['KEY']` | Server-side files |
-| Framework constants | `django.conf.settings.*` | Not user-modifiable |
-| Hardcoded values | `BASE_URL = "https://api.internal"` | Compile-time constants |
+| Source                | Example                                      | Why It's Safe                    |
+| --------------------- | -------------------------------------------- | -------------------------------- |
+| Django settings       | `settings.API_URL`, `settings.ALLOWED_HOSTS` | Set via config/env at deployment |
+| Environment variables | `os.environ.get('DATABASE_URL')`             | Deployment configuration         |
+| Config files          | `config.yaml`, `app.config['KEY']`           | Server-side files                |
+| Framework constants   | `django.conf.settings.*`                     | Not user-modifiable              |
+| Hardcoded values      | `BASE_URL = "https://api.internal"`          | Compile-time constants           |
 
 **SSRF Example - NOT a vulnerability:**
+
 ```python
 # SAFE: URL comes from Django settings (server-controlled)
 response = requests.get(f"{settings.SEER_AUTOFIX_URL}{path}")
 ```
 
 **SSRF Example - IS a vulnerability:**
+
 ```python
 # VULNERABLE: URL comes from request (attacker-controlled)
 response = requests.get(request.GET.get('url'))
 ```
 
 ### Framework-Mitigated Patterns
+
 Check language guides before flagging. Common false positives:
 
-| Pattern | Why It's Usually Safe |
-|---------|----------------------|
-| Django `{{ variable }}` | Auto-escaped by default |
-| React `{variable}` | Auto-escaped by default |
-| Vue `{{ variable }}` | Auto-escaped by default |
-| `User.objects.filter(id=input)` | ORM parameterizes queries |
-| `cursor.execute("...%s", (input,))` | Parameterized query |
-| `innerHTML = "<b>Loading...</b>"` | Constant string, no user input |
+| Pattern                             | Why It's Usually Safe          |
+| ----------------------------------- | ------------------------------ |
+| Django `{{ variable }}`             | Auto-escaped by default        |
+| React `{variable}`                  | Auto-escaped by default        |
+| Vue `{{ variable }}`                | Auto-escaped by default        |
+| `User.objects.filter(id=input)`     | ORM parameterizes queries      |
+| `cursor.execute("...%s", (input,))` | Parameterized query            |
+| `innerHTML = "<b>Loading...</b>"`   | Constant string, no user input |
 
 **Only flag these when:**
+
 - Django: `{{ var|safe }}`, `{% autoescape off %}`, `mark_safe(user_input)`
 - React: `dangerouslySetInnerHTML={{__html: userInput}}`
 - Vue: `v-html="userInput"`
@@ -93,32 +99,32 @@ Check language guides before flagging. Common false positives:
 
 What type of code am I reviewing?
 
-| Code Type | Load These References |
-|-----------|----------------------|
-| API endpoints, routes | `authorization.md`, `authentication.md`, `injection.md` |
-| Frontend, templates | `xss.md`, `csrf.md` |
-| File handling, uploads | `file-security.md` |
-| Crypto, secrets, tokens | `cryptography.md`, `data-protection.md` |
-| Data serialization | `deserialization.md` |
-| External requests | `ssrf.md` |
-| Business workflows | `business-logic.md` |
-| GraphQL, REST design | `api-security.md` |
-| Config, headers, CORS | `misconfiguration.md` |
-| CI/CD, dependencies | `supply-chain.md` |
-| Error handling | `error-handling.md` |
-| Audit, logging | `logging.md` |
+| Code Type               | Load These References                                   |
+| ----------------------- | ------------------------------------------------------- |
+| API endpoints, routes   | `authorization.md`, `authentication.md`, `injection.md` |
+| Frontend, templates     | `xss.md`, `csrf.md`                                     |
+| File handling, uploads  | `file-security.md`                                      |
+| Crypto, secrets, tokens | `cryptography.md`, `data-protection.md`                 |
+| Data serialization      | `deserialization.md`                                    |
+| External requests       | `ssrf.md`                                               |
+| Business workflows      | `business-logic.md`                                     |
+| GraphQL, REST design    | `api-security.md`                                       |
+| Config, headers, CORS   | `misconfiguration.md`                                   |
+| CI/CD, dependencies     | `supply-chain.md`                                       |
+| Error handling          | `error-handling.md`                                     |
+| Audit, logging          | `logging.md`                                            |
 
 ### 2. Load Language Guide
 
 Based on file extension or imports:
 
-| Indicators | Guide |
-|------------|-------|
-| `.py`, `django`, `flask`, `fastapi` | `languages/python.md` |
+| Indicators                                      | Guide                     |
+| ----------------------------------------------- | ------------------------- |
+| `.py`, `django`, `flask`, `fastapi`             | `languages/python.md`     |
 | `.js`, `.ts`, `express`, `react`, `vue`, `next` | `languages/javascript.md` |
-| `.go`, `go.mod` | `languages/go.md` |
-| `.rs`, `Cargo.toml` | `languages/rust.md` |
-| `.java`, `spring`, `@Controller` | `languages/java.md` |
+| `.go`, `go.mod`                                 | `languages/go.md`         |
+| `.rs`, `Cargo.toml`                             | `languages/rust.md`       |
+| `.java`, `spring`, `@Controller`                | `languages/java.md`       |
 
 ### 3. Research Before Flagging
 
@@ -137,22 +143,24 @@ For each potential finding, confirm:
 
 **Is the input attacker-controlled?**
 
-| Attacker-Controlled (Investigate) | Server-Controlled (Usually Safe) |
-|-----------------------------------|----------------------------------|
-| `request.GET`, `request.POST`, `request.args` | `settings.X`, `app.config['X']` |
-| `request.json`, `request.data`, `request.body` | `os.environ.get('X')` |
-| `request.headers` (most headers) | Hardcoded constants |
-| `request.cookies` (unsigned) | Internal service URLs from config |
-| URL path segments: `/users/<id>/` | Database content from admin/system |
-| File uploads (content and names) | Signed session data |
-| Database content from other users | Framework settings |
-| WebSocket messages | |
+| Attacker-Controlled (Investigate)              | Server-Controlled (Usually Safe)   |
+| ---------------------------------------------- | ---------------------------------- |
+| `request.GET`, `request.POST`, `request.args`  | `settings.X`, `app.config['X']`    |
+| `request.json`, `request.data`, `request.body` | `os.environ.get('X')`              |
+| `request.headers` (most headers)               | Hardcoded constants                |
+| `request.cookies` (unsigned)                   | Internal service URLs from config  |
+| URL path segments: `/users/<id>/`              | Database content from admin/system |
+| File uploads (content and names)               | Signed session data                |
+| Database content from other users              | Framework settings                 |
+| WebSocket messages                             |                                    |
 
 **Does the framework mitigate this?**
+
 - Check language guide for auto-escaping, parameterization
 - Check for middleware/decorators that sanitize
 
 **Is there validation upstream?**
+
 - Input validation before this code
 - Sanitization libraries (DOMPurify, bleach, etc.)
 
@@ -162,20 +170,80 @@ Skip theoretical issues. Report only what you've confirmed is exploitable after 
 
 ---
 
+## Privacy and Personal Information
+
+**Always review for personal information leakage regardless of whether the user asks for it.**
+
+### Personal Data in Public Deployments
+
+**CRITICAL: Any app or page deployed to a public URL must not expose personal or sensitive data.**
+
+- Personally identifiable information (PII): names, emails, phone numbers, addresses, national IDs
+- Employee data, salaries, roles, or internal org structure
+- Client names, contact details, or engagement information
+- CV or competency data fetched from internal systems (e.g. CV bases)
+- Data fetched from CRM systems (e.g. HubSpot contacts, deals, companies)
+
+**If personal or sensitive data is present and the deployment target is public, this is a HIGH severity finding.** Recommend private deployment using the `variant-deploy` skill.
+
+### Business Information Leakage
+
+Some business information may be acceptable to expose publicly, but **you must explicitly spar with the user** to establish what is intentionally public before treating it as safe.
+
+Questions to ask:
+
+- Is this data fetched from HubSpot, a CV base, or another internal system?
+- Has it been confirmed that this specific data is OK to share publicly?
+- Could this data identify individuals, clients, or reveal internal business state?
+
+When in doubt, treat business data as private and recommend internal deployment via `variant-deploy`.
+
+### Deployment Guidance
+
+| Data Type                                                                       | Acceptable Deployment                                                 |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Confirmed public content (blog posts, public profiles explicitly marked public) | Public URL                                                            |
+| Personal data, PII, employee data                                               | Internal only via `variant-deploy`                                    |
+| CRM data (HubSpot), CV/competency data                                          | Internal only via `variant-deploy` unless explicitly confirmed public |
+| Unclassified business data                                                      | Spar with user — default to internal                                  |
+
+---
+
+## Authentication and Access Control
+
+### SPA / JS Bundle Authentication is NOT Security
+
+**A login form rendered inside a JavaScript bundle does not provide real authentication.** All code, routes, and data embedded in a JS bundle are accessible to anyone who loads the page — the "login gate" only hides the UI, not the data.
+
+Flag the following as **HIGH severity**:
+
+- Login forms implemented purely in frontend JS/React/Vue/Svelte with no server-side session or token validation
+- API keys, tokens, or credentials embedded in the JS bundle or hardcoded in frontend code
+- Role-based UI hiding (e.g. `if (user.isAdmin) showAdminPanel()`) without server-side enforcement
+- Fetch calls to APIs that return sensitive data without checking authentication server-side
+- Apps where "authentication" consists only of checking a flag or value stored in `localStorage` or `sessionStorage`
+
+**Why:** Anyone can open DevTools, inspect the bundle, call the API directly, or set the localStorage flag. Frontend-only auth protects nothing.
+
+**Recommendation:** If the app requires real authentication, it must be deployed as an internal app using the `variant-deploy` skill, which handles proper access control at the hosting layer. Do not attempt to implement auth inside an SPA without a proper backend session/token system.
+
+---
+
 ## Severity Classification
 
-| Severity | Impact | Examples |
-|----------|--------|----------|
-| **Critical** | Direct exploit, severe impact, no auth required | RCE, SQL injection to data, auth bypass, hardcoded secrets |
-| **High** | Exploitable with conditions, significant impact | Stored XSS, SSRF to metadata, IDOR to sensitive data |
-| **Medium** | Specific conditions required, moderate impact | Reflected XSS, CSRF on state-changing actions, path traversal |
-| **Low** | Defense-in-depth, minimal direct impact | Missing headers, verbose errors, weak algorithms in non-critical context |
+| Severity     | Impact                                          | Examples                                                                 |
+| ------------ | ----------------------------------------------- | ------------------------------------------------------------------------ |
+| **Critical** | Direct exploit, severe impact, no auth required | RCE, SQL injection to data, auth bypass, hardcoded secrets               |
+| **High**     | Exploitable with conditions, significant impact | Stored XSS, SSRF to metadata, IDOR to sensitive data                     |
+| **Medium**   | Specific conditions required, moderate impact   | Reflected XSS, CSRF on state-changing actions, path traversal            |
+| **Low**      | Defense-in-depth, minimal direct impact         | Missing headers, verbose errors, weak algorithms in non-critical context |
 
 ---
 
 ## Quick Patterns Reference
 
 ### Always Flag (Critical)
+
 ```
 eval(user_input)           # Any language
 exec(user_input)           # Any language
@@ -188,6 +256,7 @@ child_process.exec(user)   # Node.js
 ```
 
 ### Always Flag (High)
+
 ```
 innerHTML = userInput              # DOM XSS
 dangerouslySetInnerHTML={user}     # React XSS
@@ -198,6 +267,7 @@ os.system(f"cmd {user_input}")     # Command injection
 ```
 
 ### Always Flag (Secrets)
+
 ```
 password = "hardcoded"
 api_key = "sk-..."
@@ -206,6 +276,7 @@ private_key = "-----BEGIN"
 ```
 
 ### Check Context First (MUST Investigate Before Flagging)
+
 ```
 # SSRF - ONLY if URL is from user input, NOT from settings/config
 requests.get(request.GET['url'])     # FLAG: User-controlled URL
@@ -232,10 +303,11 @@ random.random() for token            # FLAG: Security tokens need secrets module
 
 ## Output Format
 
-```markdown
+````markdown
 ## Security Review: [File/Component Name]
 
 ### Summary
+
 - **Findings**: X (Y Critical, Z High, ...)
 - **Risk Level**: Critical/High/Medium/Low
 - **Confidence**: High/Mixed
@@ -243,6 +315,7 @@ random.random() for token            # FLAG: Security tokens need secrets module
 ### Findings
 
 #### [VULN-001] [Vulnerability Type] (Severity)
+
 - **Location**: `file.py:123`
 - **Confidence**: High
 - **Issue**: [What the vulnerability is]
@@ -251,13 +324,17 @@ random.random() for token            # FLAG: Security tokens need secrets module
   ```python
   [Vulnerable code snippet]
   ```
+````
+
 - **Fix**: [How to remediate]
 
 ### Needs Verification
 
 #### [VERIFY-001] [Potential Issue]
+
 - **Location**: `file.py:456`
 - **Question**: [What needs to be verified]
+
 ```
 
 If no vulnerabilities found, state: "No high-confidence vulnerabilities identified."
@@ -294,3 +371,4 @@ If no vulnerabilities found, state: "No high-confidence vulnerabilities identifi
 - `rust.md` - Rust unsafe blocks, FFI security
 - `java.md` - Spring, Java EE patterns
 
+```

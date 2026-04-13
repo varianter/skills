@@ -51,7 +51,19 @@ Ask: _"Should this be **public** (accessible to anyone at share.variant.dev) or 
 
 Read context clues — tools using HubSpot, Salesforce, internal APIs, employee data, or anything described as "internal" or "for the team" should default toward **internal**. Proactively suggest it.
 
-### Step 3: Secrets check (public deployments only)
+### Step 3: Security review
+
+Before deploying, trigger the `security-review` skill on the code being deployed. This is mandatory — do not skip it.
+
+The security review must check for:
+- Personal or sensitive data exposed in a public deployment (PII, employee data, CRM/HubSpot data, CV data)
+- Business information that has not been explicitly confirmed as safe to publish publicly
+- Authentication implemented purely in frontend JS (login forms in SPA bundles are not real security)
+- Hardcoded secrets, API keys, or credentials in the code
+
+**If the security review raises any blocking findings, stop the deployment and report them to the user before proceeding.** Let the user resolve the issues or switch to an internal deployment if appropriate.
+
+### Step 4: Secrets check (public deployments only)
 
 Before deploying to `varianter/external-artifacts`, scan all files for anything that looks like a secret:
 
@@ -66,7 +78,7 @@ Before deploying to `varianter/external-artifacts`, scan all files for anything 
 
 Do not proceed with public deployment if secrets are present. Not even if the user asks you to.
 
-### Step 4: Choose a slug
+### Step 5: Choose a slug
 
 **Always ask the user for a slug** — even if the conversation already contains a project name or file name. Never infer or silently reuse a name from context.
 
@@ -84,7 +96,7 @@ Rules for the slug:
 
 Conversion rules: lowercase everything, replace spaces and underscores with `-`, strip any character that isn't `a-z`, `0-9`, or `-`, collapse consecutive hyphens, trim leading/trailing hyphens.
 
-### Step 5: Check if the app already exists
+### Step 6: Check if the app already exists
 
 Call the `github-app-exists` MCP tool with `app_name` and `repo` ("public" or "internal"). If it returns `"exists"`, stop and ask explicitly:
 
@@ -92,7 +104,7 @@ Call the `github-app-exists` MCP tool with `app_name` and `repo` ("public" or "i
 
 Only proceed if the user confirms.
 
-### Step 6: Framework apps → Vite project setup
+### Step 7: Framework apps → Vite project setup
 
 If the app uses React, Vue, Svelte, Solid, Preact, or any other SPA framework — or if the user has a rich app that can't run as plain static HTML — scaffold or rewrite it as a Vite project.
 
@@ -164,7 +176,7 @@ Adjust the plugin import for the framework being used:
 
 The platform runs `npm install && npm run build` automatically — no manual build step needed.
 
-### Step 7: Deploy via MCP tool
+### Step 8: Deploy via MCP tool
 
 Call the `github-deploy-app` MCP tool with:
 - `app_name`: the chosen app name
@@ -184,7 +196,7 @@ The tool creates a single atomic commit and returns the live URL and commit link
 
 > Deployment failed. Please ensure the **Variant Internal MCP server** is connected and try again.
 
-### Step 8: Confirm
+### Step 9: Confirm
 
 Once deployed, use the live URL and commit link returned by `github-deploy-app` to tell the user:
 
