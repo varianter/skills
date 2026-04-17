@@ -26,6 +26,10 @@ Deploy static files and projects to Variant's hosting infrastructure.
 
 Both repos use the folder structure `apps/<app-name>/`. Whatever is in that folder is served.
 
+ALWAYS ASK user if they want to deploy as Internal or Public.
+
+ALWAYS ASK user for what the "app-name" should be and make sure it is a slug that is URL friendly.
+
 **Two hosting modes are supported:**
 
 - **Static files**: A plain static file server — `index.html` as entry point, plus any CSS/JS/images. No build step needed.
@@ -56,6 +60,7 @@ Read context clues — tools using HubSpot, Salesforce, internal APIs, employee 
 Before deploying, trigger the `security-review` skill on the code being deployed. This is mandatory — do not skip it.
 
 The security review must check for:
+
 - Personal or sensitive data exposed in a public deployment (PII, employee data, CRM/HubSpot data, CV data)
 - Business information that has not been explicitly confirmed as safe to publish publicly
 - Authentication implemented purely in frontend JS (login forms in SPA bundles are not real security)
@@ -85,6 +90,7 @@ Do not proceed with public deployment if secrets are present. Not even if the us
 > _"What slug should I use for the URL? This becomes the path: `share.variant.dev/<slug>/`"_
 
 Rules for the slug:
+
 - Lowercase only
 - Words separated by hyphens (kebab-case): `budget-tracker`, `team-dashboard`, `q4-rapport`
 - No spaces, dots, underscores, slashes, or other special characters
@@ -179,6 +185,7 @@ The platform runs `npm install && npm run build` automatically — no manual bui
 ### Step 8: Deploy via MCP tool
 
 Call the `github-deploy-app` MCP tool with:
+
 - `app_name`: the chosen app name
 - `repo`: `"public"` or `"internal"`
 - `files`: a JSON array of `{"path": "apps/<app-name>/...", "content": "..."}` for every file being deployed — preserving relative paths under `apps/<app-name>/`
