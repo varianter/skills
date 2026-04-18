@@ -26,10 +26,6 @@ Deploy static files and projects to Variant's hosting infrastructure.
 
 Both repos use the folder structure `apps/<app-name>/`. Whatever is in that folder is served.
 
-ALWAYS ASK user if they want to deploy as Internal or Public.
-
-ALWAYS ASK user for what the "app-name" should be and make sure it is a slug that is URL friendly.
-
 **Two hosting modes are supported:**
 
 - **Static files**: A plain static file server — `index.html` as entry point, plus any CSS/JS/images. No build step needed.
@@ -37,7 +33,18 @@ ALWAYS ASK user for what the "app-name" should be and make sure it is a slug tha
 
 ## Deployment workflow
 
-### Step 1: Understand what's being deployed
+### Step 1: Choose a name and target repo
+
+Call the `find-github-app-name` MCP tool. This opens an interactive widget that handles slug entry, repo selection, and availability check in one step.
+
+If `app_name` and/or `repo` are already known from context (e.g. a previous deployment in this conversation), pass them as arguments — the widget will pre-fill the fields and auto-check availability so the user can confirm immediately without re-entering anything.
+
+- If the name is **available**: the user confirms to deploy — the widget returns `action: deploy`.
+- If the name is **already taken**: the widget shows a "Replace" option — if the user confirms, it returns `action: replace`.
+
+Use the `app_name`, `repo`, and `action` values returned by the widget for all subsequent steps. Do not ask the user separately for a slug or repo — the widget handles both.
+
+### Step 2: Understand what's being deployed
 
 Identify the files and what kind of project they form:
 
@@ -48,12 +55,6 @@ Identify the files and what kind of project they form:
 - **CoWork**: Collect the files the user has created or references
 
 If there's no `index.html` and it's not a Vite project, let the user know and offer to create one.
-
-### Step 2: Determine visibility
-
-Ask: _"Should this be **public** (accessible to anyone at share.variant.dev) or **internal** (only Variant employees at artifacts.variant.dev)?"_
-
-Read context clues — tools using HubSpot, Salesforce, internal APIs, employee data, or anything described as "internal" or "for the team" should default toward **internal**. Proactively suggest it.
 
 ### Step 3: Security review
 
@@ -83,34 +84,7 @@ Before deploying to `varianter/external-artifacts`, scan all files for anything 
 
 Do not proceed with public deployment if secrets are present. Not even if the user asks you to.
 
-### Step 5: Choose a slug
-
-**Always ask the user for a slug** — even if the conversation already contains a project name or file name. Never infer or silently reuse a name from context.
-
-> _"What slug should I use for the URL? This becomes the path: `share.variant.dev/<slug>/`"_
-
-Rules for the slug:
-
-- Lowercase only
-- Words separated by hyphens (kebab-case): `budget-tracker`, `team-dashboard`, `q4-rapport`
-- No spaces, dots, underscores, slashes, or other special characters
-- Short and descriptive
-
-**If the user gives a name that isn't URL-safe**, convert it automatically and confirm before proceeding:
-
-> _"I'll use `team-dashboard` as the slug (converted from "Team Dashboard"). Does that work?"_
-
-Conversion rules: lowercase everything, replace spaces and underscores with `-`, strip any character that isn't `a-z`, `0-9`, or `-`, collapse consecutive hyphens, trim leading/trailing hyphens.
-
-### Step 6: Check if the app already exists
-
-Call the `github-app-exists` MCP tool with `app_name` and `repo` ("public" or "internal"). If it returns `"exists"`, stop and ask explicitly:
-
-> An app called `<app-name>` already exists and is live at `<URL>`. Should I replace it with this new version? The existing files will be overwritten.
-
-Only proceed if the user confirms.
-
-### Step 7: Framework apps → Vite project setup
+### Step 5: Framework apps → Vite project setup
 
 If the app uses React, Vue, Svelte, Solid, Preact, or any other SPA framework — or if the user has a rich app that can't run as plain static HTML — scaffold or rewrite it as a Vite project.
 
@@ -182,7 +156,7 @@ Adjust the plugin import for the framework being used:
 
 The platform runs `npm install && npm run build` automatically — no manual build step needed.
 
-### Step 8: Deploy via MCP tool
+### Step 6: Deploy via MCP tool
 
 Call the `github-deploy-app` MCP tool with:
 
@@ -191,7 +165,7 @@ Call the `github-deploy-app` MCP tool with:
 - `files`: a JSON array of `{"path": "apps/<app-name>/...", "content": "..."}` for every file being deployed — preserving relative paths under `apps/<app-name>/`
 - `author_name` + `author_email`: populate from the user's Variant profile or earlier conversation context if known; omit if not available
 
-The tool creates a single atomic commit and returns the live URL and commit link — use those directly in Step 8.
+The tool creates a single atomic commit and returns the live URL and commit link — use those directly in Step 7.
 
 **Hard constraints — never break these:**
 
@@ -203,7 +177,7 @@ The tool creates a single atomic commit and returns the live URL and commit link
 
 > Deployment failed. Please ensure the **Variant Internal MCP server** is connected and try again.
 
-### Step 9: Confirm
+### Step 7: Confirm
 
 Once deployed, use the live URL and commit link returned by `github-deploy-app` to tell the user:
 
@@ -219,7 +193,7 @@ For internal deployments, add: _"Access requires Variant employee login."_
 
 ## Edge cases
 
-**App needs a real backend**: Only static files and Vite-built SPAs are supported — no Node/Python/etc. servers. Rewrite it as a client-side Vite app (see Step 6). Move data fetching to the browser, replace server logic with direct API calls or static data, and reconstruct the UI using the same framework. If the rewrite isn't feasible (e.g., the app relies on a database with no public API), tell the user clearly what the limitation is.
+**App needs a real backend**: Only static files and Vite-built SPAs are supported — no Node/Python/etc. servers. Rewrite it as a client-side Vite app (see Step 5). Move data fetching to the browser, replace server logic with direct API calls or static data, and reconstruct the UI using the same framework. If the rewrite isn't feasible (e.g., the app relies on a database with no public API), tell the user clearly what the limitation is.
 
 **Multiple HTML files**: Fine for static deployments — all are served. Ensure `index.html` is the main entry point.
 
