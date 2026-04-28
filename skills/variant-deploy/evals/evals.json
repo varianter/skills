@@ -106,6 +106,30 @@
       ]
     },
     {
+      "id": 6,
+      "prompt": "Deploy this internally. It's a single index.html that visualises our consultant CVs. The HTML has all the CV data embedded as a large JSON array directly in a <script> tag — about 200 entries with full bio text for each person.",
+      "expected_output": "Recognises that a large inline JSON dataset (200 full CV entries with bio text) is too large to pass inline. Proposes extracting the data to a separate data.json file and loading it at runtime with fetch(). Does not deploy with all data embedded inline in index.html.",
+      "files": [],
+      "assertions": [
+        {
+          "name": "identifies-large-dataset-problem",
+          "description": "Recognises that embedding ~200 full CV entries inline is a large-dataset problem — too large to generate or pass inline — and should be split out"
+        },
+        {
+          "name": "proposes-data-json-split",
+          "description": "Suggests extracting the data into a separate file (e.g. data.json) rather than keeping it inline in index.html"
+        },
+        {
+          "name": "proposes-fetch-at-runtime",
+          "description": "Shows or describes loading the data file at runtime using fetch() instead of embedding it in the HTML"
+        },
+        {
+          "name": "does-not-deploy-all-data-inline",
+          "description": "Does NOT deploy with the full 200-entry dataset embedded inside index.html"
+        }
+      ]
+    },
+    {
       "id": 5,
       "prompt": "Deploy my project to share.variant.dev. The app name should be 'team-dashboard'. It's a simple static site.",
       "expected_output": "Checks if 'team-dashboard' already exists in varianter/external-artifacts. Finds it exists. Asks explicitly for confirmation before overwriting. Does not proceed silently.",

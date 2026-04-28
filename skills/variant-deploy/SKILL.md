@@ -56,6 +56,8 @@ Identify the files and what kind of project they form:
 
 If there's no `index.html` and it's not a Vite project, let the user know and offer to create one.
 
+**Check for data-heavy files:** Small embedded JSON (config, initial state, lookup tables) inside `index.html` is fine. If an `index.html` contains a large dataset (hundreds of entries, full text blobs, etc.), extract it to a separate `data.json` and load it at runtime with `fetch('./data.json').then(r => r.json())`. Do this proactively to avoid hitting model output and transport limits.
+
 ### Step 3: Security review
 
 Before deploying, trigger the `security-review` skill on the code being deployed. This is mandatory — do not skip it.
@@ -162,16 +164,33 @@ Call the `github-deploy-app` MCP tool with:
 
 - `app_name`: the chosen app name
 - `repo`: `"public"` or `"internal"`
-- `files`: a JSON array of `{"path": "apps/<app-name>/...", "content": "..."}` for every file being deployed — preserving relative paths under `apps/<app-name>/`
+- `files`: a JSON array of `{"path": "...", "content": "..."}` for every file being deployed — paths relative to `apps/<app-name>/` with no leading slash
 - `author_name` + `author_email`: populate from the user's Variant profile or earlier conversation context if known; omit if not available
 
 The tool creates a single atomic commit and returns the live URL and commit link — use those directly in Step 7.
+
+**Large datasets — split to a separate file:**
+
+Small embedded JSON (config, initial state, lookup tables) in `index.html` is fine. For large datasets (hundreds of entries, full text blobs), keep `index.html` lean:
+- Put the data in a separate `data.json` (or multiple topic files) and include it in the same deploy
+- Load it at runtime with `fetch('./data.json').then(r => r.json())`
+- If one data file is itself very large, split it (e.g. `data-2023.json`, `data-2024.json`)
+
+This avoids hitting model output and transport limits when content is AI-generated.
+
+Example structure:
+```
+apps/<app-name>/
+├── index.html     ← lean; fetches data on load
+└── data.json      ← the dataset, loaded via fetch()
+```
 
 **Hard constraints — never break these:**
 
 - Only ever write inside `apps/` — never touch anything else in the repo
 - Only deploy one app per invocation
 - Do not construct a commit message manually — the tool handles that automatically
+- For large datasets, always split to a separate `data.json` rather than embedding inline in HTML
 
 **If the MCP tool call fails:**
 
